@@ -770,7 +770,9 @@ function renderViajes() {
   document.getElementById('viajes-container').innerHTML = list.map((v,i) => {
     const s = getMemberStyle(v.persona);
     const checks = v.checklist.map(c => `<div class="viaje-check-item${c.done?' done-item':''}"><div class="mini-check${c.done?' checked':''}" onclick="toggleCheck(${v.id},${c.id})">${c.done?'✓':''}</div><span>${c.texto}</span></div>`).join('');
-    const pdfLink = v.pdfFile ? `<a href="${v.pdfFile}" target="_blank" style="display:inline-block;margin-top:8px;font-size:13px;color:#E91E8C;font-weight:700">📄 Ver hoja de ruta</a>` : '';
+    const GITHUB_BASE = 'https://raw.githubusercontent.com/bxm8k2n5jc-hash/culecas/main/';
+    const pdfUrl = v.pdf_file ? GITHUB_BASE + v.pdf_file : null;
+    const pdfLink = pdfUrl ? `<a href="${pdfUrl}" target="_blank" style="display:inline-block;margin-top:10px;font-size:14px;color:#E91E8C;font-weight:700;background:white;padding:6px 12px;border-radius:20px;border:2px solid #E91E8C;text-decoration:none">📄 Ver hoja de ruta</a>` : '';
     const fotosHtml = v.fotos.length > 0 ? `<div class="viaje-check-list"><div class="viaje-check-title">📸 Recuerdos</div><div class="viaje-fotos">${v.fotos.map(f => `<span class="viaje-foto-tag">📸 ${f}</span>`).join('')}</div></div>` : '';
     return `<div class="viaje-card">${tack(i)}<div class="viaje-header"><div><div class="viaje-destino">${v.destino}</div><div class="viaje-fecha">📅 ${v.fecha}</div><span class="viaje-estado ${v.estado}">${estadoLabels[v.estado]}</span></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px"><span class="member-tag" style="background:${s.bg};color:${s.text}">${v.persona}</span><button class="icon-btn" onclick="deleteItem(viajes,${v.id},'culecas_viajes')">🗑️</button></div></div><div class="viaje-check-list"><div class="viaje-check-title">📋 Preparativos</div>${checks}<button class="add-check-btn" onclick="addCheck(${v.id})">+ Añadir preparativo</button>${pdfLink}</div>${fotosHtml}</div>`;
   }).join('');
@@ -862,7 +864,7 @@ async function saveModal() {
     const estado = document.getElementById('m-estado')?.value || 'sonado';
     const check = document.getElementById('m-check')?.value.trim();
     const checklist = check ? [{ texto: check, done: false }] : [];
-    await sbFetch('culecas_viajes', 'POST', { destino: name, fecha, estado, persona, checklist, fotos: [], pdf_file: pdfFile });
+    await sbFetch('culecas_viajes', 'POST', { destino: name, fecha, estado, persona, checklist: JSON.stringify(checklist), fotos: JSON.stringify([]), pdf_file: pdfFile });
   } else if (modalType === 'documento') {
     const type = document.getElementById('m-type')?.value || 'note';
     const iconMap = { note: '📝', pdf: '📄', img: '📷' };
