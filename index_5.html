@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CULECAS</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Culecas">
+  <meta name="application-name" content="Culecas">
+  <link rel="apple-touch-icon" href="icono.png">
+  <link rel="icon" href="icono.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+
+    /* ========== SPLASH ========== */
+    #splash {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: #6D1B4E;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      gap: 28px;
+      transition: opacity 0.7s ease;
+    }
+    #splash.fade-out { opacity: 0; pointer-events: none; }
+    #splash.hidden { display: none; }
+
+    .splash-logo {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+    .splash-icon {
+      width: 76px; height: 76px;
+      background: linear-gradient(135deg, #E91E8C, #9C27B0);
+      border-radius: 22px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 42px;
+      box-shadow: 0 8px 32px rgba(233,30,140,0.6);
+    }
+    .splash-text-wrap { display: flex; flex-direction: column; }
+    .splash-title {
+      font-family: 'Comic Neue', cursive;
+      font-size: 38px; font-weight: 700;
+      color: white; letter-spacing: 4px; line-height: 1;
+    }
+    .splash-sub {
+      font-family: 'Comic Neue', cursive;
+      font-size: 16px;
+      color: rgba(255,255,255,0.75);
+      margin-top: 5px;
+    }
+    .splash-spinner {
+      width: 38px; height: 38px;
+      border: 3px solid rgba(255,255,255,0.2);
+      border-top-color: #E91E8C;
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ========== APP ========== */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Comic Neue', cursive; }
+
+    .app {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      background: #F0A8C0;
+    }
+    /* Textura corcho rosa */
+    .app::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #F0A8C0;
+      background-image:
+        radial-gradient(ellipse 3px 2px at 10% 15%, rgba(255,255,255,0.25) 0%, transparent 100%),
+        radial-gradient(ellipse 2px 3px at 30% 40%, rgba(180,80,110,0.2) 0%, transparent 100%),
+        radial-gradient(ellipse 4px 2px at 55% 25%, rgba(255,255,255,0.15) 0%, transparent 100%),
+        radial-gradient(ellipse 2px 4px at 75% 60%, rgba(180,80,110,0.15) 0%, transparent 100%),
+        radial-gradient(ellipse 3px 2px at 90% 35%, rgba(255,255,255,0.2) 0%, transparent 100%),
+        repeating-linear-gradient(25deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 8px),
+        repeating-linear-gradient(-25deg, rgba(180,80,110,0.05) 0px, rgba(180,80,110,0.05) 1px, transparent 1px, transparent 12px);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* HEADER */
+    .header {
+      position: relative; z-index: 2;
+      background: linear-gradient(135deg, #E91E8C 0%, #9C27B0 100%);
+      padding: .9rem 1.25rem 2.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 8px;
+    }
+    .header::after {
+      content: '';
+      position: absolute; bottom: -1px; left: 0; right: 0; height: 40px;
+      background: #F0A8C0;
+      clip-path: ellipse(55% 100% at 50% 100%);
+    }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .logo {
+      width: 42px; height: 42px;
+      background: rgba(255,255,255,0.25); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; font-size: 24px;
+    }
+    .app-title { font-size: 26px; font-weight: 700; color: white; letter-spacing: 2px; }
+    .app-subtitle { font-size: 15px; color: rgba(255,255,255,0.9); font-weight: 700; }
+    .admin-badge {
+      background: rgba(255,255,255,0.2); color: white; font-size: 13px;
+      padding: 5px 13px; border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.4); font-weight: 700;
+    }
+
+    /* LEYENDA */
+    .members-legend {
+      position: relative; z-index: 2;
+      display: flex; gap: 6px; flex-wrap: wrap;
+      padding: 14px 1.25rem 6px;
+    }
+    .member-pill {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 13px; padding: 4px 11px;
+      border-radius: 20px; font-weight: 700;
+      background: white; box-shadow: 2px 2px 4px rgba(0,0,0,0.15);
+    }
+    .color-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .color-tri { width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; flex-shrink: 0; }
+
+    /* ===== NAV: BLANCO con borde rosa grueso ===== */
+    .nav {
+      position: relative; z-index: 2;
+      display: flex; overflow-x: auto; scrollbar-width: none;
+      padding: 8px 1rem 12px; gap: 7px; background: transparent;
+    }
+    .nav::-webkit-scrollbar { display: none; }
+    .nav-btn {
+      padding: 8px 14px; font-size: 13px; font-weight: 700;
+      color: #C2185B;
+      border: 4px solid #E91E8C;
+      background: #FFFFFF;
+      cursor: pointer; white-space: nowrap; border-radius: 20px;
+      transition: all 0.15s;
+      display: flex; align-items: center; gap: 5px;
+      font-family: 'Comic Neue', cursive;
+      box-shadow: 3px 3px 6px rgba(0,0,0,0.15);
+      flex-shrink: 0;
+    }
+    .nav-btn.active {
+      background: #FFE0EF;
+      border-color: #C2185B;
+      color: #880E4F;
+      box-shadow: 4px 4px 8px rgba(0,0,0,0.2);
+    }
+    .nav-btn:hover:not(.active) { background: #FFF5F9; }
+
+    /* CONTENIDO */
+    .content { position: relative; z-index: 1; padding: 4px 1.25rem 1.25rem; flex: 1; }
+    .section { display: none; }
+    .section.active { display: block; }
+    .sec-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1rem; flex-wrap: wrap; gap: 8px; padding-top: .5rem;
+    }
+    .sec-title { font-size: 15px; color: #7B1FA2; font-weight: 700; text-shadow: 0 1px 2px rgba(255,255,255,0.5); }
+
+    .add-btn {
+      background: linear-gradient(135deg, #E91E8C, #9C27B0);
+      color: white; border: none; border-radius: 20px;
+      padding: 8px 16px; font-size: 14px; cursor: pointer;
+      display: flex; align-items: center; gap: 5px;
+      font-family: 'Comic Neue', cursive; font-weight: 700;
+      box-shadow: 0 3px 8px rgba(233,30,140,0.35);
+    }
+    .add-btn:hover { opacity: 0.9; }
+    .add-btn-alt {
+      background: white; color: #9C27B0; border: 3px solid #E91E8C;
+      border-radius: 20px; padding: 6px 13px; font-size: 14px; cursor: pointer;
+      display: flex; align-items: center; gap: 5px;
+      font-family: 'Comic Neue', cursive; font-weight: 700;
+    }
+    .add-btn-alt:hover { background: #FCE4EC; }
+    .icon-btn {
+      background: transparent; border: none; cursor: pointer;
+      color: #CE93D8; padding: 4px; border-radius: 6px;
+      font-size: 15px; display: flex; align-items: center; transition: all 0.15s;
+    }
+    .icon-btn:hover { color: #9C27B0; }
+    .member-tag { font-size: 12px; padding: 2px 8px; border-radius: 20px; font-weight: 700; }
+
+    /* CHINCHETA */
+    .tack {
+      position: absolute; top: -14px; right: 12px;
+      width: 26px; height: 26px; border-radius: 50%;
+      box-shadow: 2px 3px 6px rgba(0,0,0,0.5), inset 0 -2px 4px rgba(0,0,0,0.2), inset 2px 2px 4px rgba(255,255,255,0.4);
+      z-index: 3; display: flex; align-items: center; justify-content: center;
+    }
+    .tack::after {
+      content: ''; position: absolute; bottom: -8px;
+      left: 50%; transform: translateX(-50%);
+      width: 4px; height: 9px; background: #999;
+      border-radius: 0 0 3px 3px; box-shadow: 0 2px 3px rgba(0,0,0,0.3);
+    }
+    .tack-inner { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.5); }
+
+    /* TARJETAS CORCHO */
+    .cork-card {
+      background: white; padding: 18px 14px 12px; margin-bottom: 16px;
+      position: relative; box-shadow: 3px 3px 8px rgba(0,0,0,0.2); border-radius: 3px;
+    }
+    .cork-card:nth-child(odd) { transform: rotate(-0.6deg); }
+    .cork-card:nth-child(even) { transform: rotate(0.5deg); }
+    .cork-card:hover { transform: rotate(0) scale(1.01); z-index: 5; }
+
+    /* CALENDARIO */
+    .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: .75rem; padding-top: .25rem; }
+    .cal-title { font-size: 20px; font-weight: 700; color: #7B1FA2; text-shadow: 0 1px 2px rgba(255,255,255,0.6); }
+    .cal-nav { display: flex; gap: 5px; }
+    .cal-nav button {
+      background: white; border: 3px solid #E91E8C; border-radius: 10px;
+      width: 30px; height: 30px; cursor: pointer; color: #9C27B0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; font-family: 'Comic Neue', cursive; font-weight: 700;
+      box-shadow: 2px 2px 4px rgba(0,0,0,0.15);
+    }
+    .cal-nav button:hover { background: #FCE4EC; }
+    .cal-leyenda { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: .75rem; font-size: 12px; font-weight: 700; }
+    .cal-leyenda-item {
+      display: flex; align-items: center; gap: 5px;
+      background: white; padding: 3px 9px; border-radius: 20px;
+      box-shadow: 2px 2px 4px rgba(0,0,0,0.12); color: #7B1FA2;
+    }
+    .cal-grid {
+      display: grid; grid-template-columns: repeat(7,1fr); gap: 4px;
+      background: white; border-radius: 8px; padding: 12px;
+      box-shadow: 3px 3px 8px rgba(0,0,0,0.2);
+    }
+    .cal-day-name { text-align: center; font-size: 11px; color: #CE93D8; padding: 4px 0; font-weight: 700; text-transform: uppercase; }
+    .cal-day { display: flex; flex-direction: column; align-items: center; padding: 3px 0; cursor: pointer; transition: all 0.1s; }
+    .day-circle { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #555; }
+    .cal-day:hover .day-circle { background: #FCE4EC; color: #9C27B0; }
+    .cal-day.other-month .day-circle { color: #F8BBD9; }
+    .cal-day.today .day-circle { background: linear-gradient(135deg, #E91E8C, #9C27B0); color: white; box-shadow: 0 2px 8px rgba(233,30,140,0.4); }
+    .day-events { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 3px; justify-content: center; min-height: 12px; }
+    .day-event-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .day-event-tri { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; flex-shrink: 0; }
+
+    .events-list { margin-top: 1rem; }
+    .events-list-title { font-size: 12px; font-weight: 700; color: white; margin-bottom: 9px; text-transform: uppercase; letter-spacing: 0.8px; text-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+    .event-item {
+      background: white; padding: 14px 13px 10px; margin-bottom: 14px;
+      display: flex; align-items: center; gap: 10px;
+      position: relative; box-shadow: 3px 3px 7px rgba(0,0,0,0.18); border-radius: 3px;
+    }
+    .event-item:nth-child(odd) { transform: rotate(-0.4deg); }
+    .event-item:nth-child(even) { transform: rotate(0.4deg); }
+    .event-item:hover { transform: rotate(0); z-index: 5; }
+    .event-bar { width: 4px; height: 34px; border-radius: 4px; flex-shrink: 0; }
+    .event-info { flex: 1; }
+    .event-name { font-size: 14px; font-weight: 700; color: #7B1FA2; }
+    .event-meta { font-size: 12px; color: #CE93D8; margin-top: 2px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+    /* TAREAS */
+    .tasks-filter { display: flex; gap: 6px; flex-wrap: wrap; }
+    .filter-pill {
+      background: white; border: 3px solid #E91E8C; border-radius: 20px;
+      padding: 4px 13px; font-size: 14px; cursor: pointer; color: #C2185B;
+      font-family: 'Comic Neue', cursive; font-weight: 700; transition: all 0.15s;
+      box-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
+    .filter-pill.active { background: #FFE0EF; border-color: #C2185B; color: #880E4F; }
+    .task-item {
+      background: white; padding: 18px 13px 12px; margin-bottom: 16px;
+      display: flex; align-items: flex-start; gap: 10px;
+      position: relative; box-shadow: 3px 3px 7px rgba(0,0,0,0.18); border-radius: 3px;
+    }
+    .task-item:nth-child(odd) { transform: rotate(-0.5deg); }
+    .task-item:nth-child(even) { transform: rotate(0.5deg); }
+    .task-item:hover { transform: rotate(0); z-index: 5; }
+    .task-item.done { opacity: 0.45; }
+    .task-check {
+      width: 22px; height: 22px; border-radius: 50%; border: 3px solid #F8BBD9;
+      cursor: pointer; flex-shrink: 0; display: flex; align-items: center;
+      justify-content: center; font-size: 12px; transition: all 0.15s; font-weight: 700;
+    }
+    .task-check.checked { background: linear-gradient(135deg, #E91E8C, #9C27B0); border: 3px solid transparent; color: white; }
+    .task-body { flex: 1; }
+    .task-title { font-size: 15px; color: #7B1FA2; font-weight: 700; }
+    .task-item.done .task-title { text-decoration: line-through; color: #F8BBD9; }
+    .task-meta { font-size: 13px; color: #CE93D8; margin-top: 4px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    .tag { padding: 3px 9px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+    .tag.urgente { background: #FCE4EC; color: #C2185B; }
+    .tag.personal { background: #F3E5F5; color: #7B1FA2; }
+    .tag.planes { background: #FFF8E1; color: #F57F17; }
+    .tag.casa { background: #E8F5E9; color: #2E7D32; }
+    .tag.trabajo { background: #E3F2FD; color: #1565C0; }
+
+    /* RECORDATORIOS */
+    .reminders-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 22px; padding-top: .5rem; }
+    .reminder-card {
+      background: white; border-radius: 3px; padding: 18px 14px 13px;
+      position: relative; box-shadow: 4px 4px 8px rgba(0,0,0,0.18);
+    }
+    .reminder-card:nth-child(odd) { transform: rotate(-0.7deg); }
+    .reminder-card:nth-child(even) { transform: rotate(0.7deg); }
+    .reminder-card:hover { transform: rotate(0); z-index: 5; }
+    .reminder-icon { font-size: 26px; margin-bottom: 8px; }
+    .reminder-title { font-size: 15px; font-weight: 700; color: #7B1FA2; margin-bottom: 4px; }
+    .reminder-time { font-size: 13px; color: #CE93D8; }
+    .reminder-badge { font-size: 12px; padding: 3px 9px; border-radius: 20px; display: inline-block; font-weight: 700; margin-top: 8px; }
+    .reminder-badge.hoy { background: #FCE4EC; color: #C2185B; }
+    .reminder-badge.manana { background: #E8F5E9; color: #2E7D32; }
+    .reminder-badge.pronto { background: #F3E5F5; color: #7B1FA2; }
+
+    /* NOTAS */
+    .notes-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(190px,1fr)); gap: 24px; padding-top: .5rem; }
+    .note-card {
+      border-radius: 3px; padding: 18px 14px 13px; cursor: pointer;
+      transition: all 0.15s; box-shadow: 5px 5px 10px rgba(0,0,0,0.18); position: relative;
+    }
+    .note-card:nth-child(odd) { transform: rotate(-1deg); }
+    .note-card:nth-child(even) { transform: rotate(1deg); }
+    .note-card:hover { transform: rotate(0) scale(1.02); z-index: 5; }
+    .note-title { font-size: 15px; font-weight: 700; margin-bottom: 7px; }
+    .note-body { font-size: 14px; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+    .note-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+    .note-date { font-size: 12px; opacity: 0.5; }
+
+    /* VIAJES */
+    .viaje-card {
+      background: white; border-radius: 3px; padding: 18px 14px 13px;
+      margin-bottom: 22px; position: relative; box-shadow: 4px 4px 8px rgba(0,0,0,0.18);
+    }
+    .viaje-card:nth-child(odd) { transform: rotate(-0.4deg); }
+    .viaje-card:nth-child(even) { transform: rotate(0.4deg); }
+    .viaje-card:hover { transform: rotate(0); z-index: 5; }
+    .viaje-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
+    .viaje-destino { font-size: 17px; font-weight: 700; color: #7B1FA2; }
+    .viaje-fecha { font-size: 13px; color: #CE93D8; margin-top: 2px; }
+    .viaje-estado { font-size: 12px; padding: 3px 10px; border-radius: 20px; font-weight: 700; display: inline-block; margin-bottom: 10px; }
+    .viaje-estado.sonado { background: #F3E5F5; color: #7B1FA2; }
+    .viaje-estado.planeado { background: #FFF8E1; color: #F57F17; }
+    .viaje-estado.hecho { background: #E8F5E9; color: #2E7D32; }
+    .viaje-check-list { margin-top: 8px; border-top: 1px dashed #F8BBD9; padding-top: 8px; }
+    .viaje-check-title { font-size: 12px; color: #CE93D8; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; }
+    .viaje-check-item { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 14px; color: #7B1FA2; }
+    .viaje-check-item.done-item { opacity: 0.5; text-decoration: line-through; color: #CE93D8; }
+    .mini-check {
+      width: 18px; height: 18px; border-radius: 50%; border: 2px dashed #F8BBD9;
+      cursor: pointer; flex-shrink: 0; display: flex; align-items: center;
+      justify-content: center; font-size: 10px; transition: all 0.15s; font-weight: 700;
+    }
+    .mini-check.checked { background: linear-gradient(135deg, #E91E8C, #9C27B0); border: 2px solid transparent; color: white; }
+    .viaje-fotos { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+    .viaje-foto-tag { background: #FFF0F8; border: 1px dashed #F8BBD9; border-radius: 8px; padding: 4px 8px; font-size: 12px; color: #C06090; }
+    .add-check-btn {
+      background: transparent; border: 2px dashed #F8BBD9; border-radius: 20px;
+      padding: 3px 10px; font-size: 12px; color: #CE93D8; cursor: pointer;
+      font-family: 'Comic Neue', cursive; font-weight: 700; margin-top: 6px;
+    }
+    .add-check-btn:hover { background: #FCE4EC; color: #9C27B0; }
+
+    /* DOCUMENTOS */
+    .docs-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(140px,1fr)); gap: 22px; padding-top: .5rem; }
+    .doc-card {
+      background: white; border-radius: 3px; padding: 18px 14px 13px;
+      cursor: pointer; box-shadow: 4px 4px 8px rgba(0,0,0,0.18); transition: all 0.15s; position: relative;
+    }
+    .doc-card:nth-child(odd) { transform: rotate(-0.7deg); }
+    .doc-card:nth-child(even) { transform: rotate(0.7deg); }
+    .doc-card:hover { transform: rotate(0) scale(1.02); z-index: 5; }
+    .doc-name { font-size: 15px; font-weight: 700; color: #7B1FA2; margin-bottom: 2px; }
+    .doc-meta { font-size: 13px; color: #CE93D8; }
+
+    /* MODAL */
+    .modal-bg {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(109,27,78,0.5); display: none;
+      align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(4px);
+    }
+    .modal-bg.open { display: flex; }
+    .modal {
+      background: white; border-radius: 12px; padding: 1.5rem; width: 320px;
+      border: 3px solid #E91E8C; max-height: 88vh; overflow-y: auto;
+      box-shadow: 8px 8px 0 rgba(233,30,140,0.25); margin: 1rem;
+    }
+    .modal-title { font-size: 17px; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; color: #7B1FA2; }
+    .modal label { font-size: 13px; color: #CE93D8; display: block; margin-bottom: 4px; margin-top: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; }
+    .modal input, .modal select, .modal textarea {
+      width: 100%; font-size: 15px; font-family: 'Comic Neue', cursive;
+      border: 3px solid #F8BBD9; border-radius: 8px; padding: 8px 12px;
+      color: #7B1FA2; outline: none; transition: border-color 0.15s;
+    }
+    .modal input:focus, .modal select:focus, .modal textarea:focus { border-color: #E91E8C; }
+    .modal textarea { height: 70px; resize: none; }
+    .modal-actions { display: flex; gap: 8px; margin-top: 1.25rem; justify-content: flex-end; }
+    .btn-sec {
+      background: white; border: 3px solid #F8BBD9; border-radius: 20px;
+      padding: 7px 14px; font-size: 14px; cursor: pointer;
+      font-family: 'Comic Neue', cursive; color: #CE93D8; font-weight: 700;
+    }
+    .btn-sec:hover { background: #FFF0F8; }
+  </style>
+</head>
+<body>
+
+<!-- PIN SCREEN -->
+<div id="pin-screen" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:#6D1B4E;z-index:9998;flex-direction:column;align-items:center;justify-content:center;gap:24px;">
+  <div style="font-family:'Comic Neue',cursive;font-size:32px;font-weight:700;color:white;letter-spacing:2px;">🐨 CULECAS</div>
+  <div style="font-family:'Comic Neue',cursive;font-size:16px;color:rgba(255,255,255,0.7);">Introduce tu PIN</div>
+  <div style="display:flex;gap:12px;">
+    <div id="dot-0" style="width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.5);background:transparent;transition:background 0.2s;"></div>
+    <div id="dot-1" style="width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.5);background:transparent;transition:background 0.2s;"></div>
+    <div id="dot-2" style="width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.5);background:transparent;transition:background 0.2s;"></div>
+    <div id="dot-3" style="width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.5);background:transparent;transition:background 0.2s;"></div>
+  </div>
+  <div id="pin-error" style="font-family:'Comic Neue',cursive;font-size:14px;color:#FF8A80;height:20px;"></div>
+  <div style="display:grid;grid-template-columns:repeat(3,70px);gap:12px;">
+    <button onclick="pinPress('1')" style="height:70px;border-radius:50%;border:2px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);color:white;font-size:22px;font-weight:700;cursor:pointer;font-family:'Comic Neue',cursive;">1</button>
+    <button onclick="pinPress('2')" style="height:70px;border-radius:50%;border:2px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);color:white;font-size:22px;font-weight:700;cursor:pointer;font-family:'Comic Neue',cursive;">2</button>
+    <button onclick="pinPress('3')" style="height:70px;border-radius:50%;border:2px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);color:white;font-size:22px;font-weight:700;cursor:pointer;font-family:'Comic Neue',cursive;">3</button>
+    <button onclick="pinPress('4')" style="height:70px;border-radius:50%;border:2px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);color:white;font-size:22px;font-weight:700;cursor:pointer;font-family:'Comic Neue',cursive;">4</button>
+    <button onclick="pinPress('5')" style="height:70px;border-radius:50%;border:2px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);color:white;font-size:22px;font-weight:700;cursor:pointer;font-family:'Comic Neue',cursive;">5</button>
+    <button onclick="pinPress('6')" style="height:70px;border-radius:50%;border:2px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);color:white;font-size:22px;font-weight:700;cursor:pointer;font-family:'Comic Neue',cursive;">6</button>
+    <button onclick="pinPress('7')" style="height:70px;border-radius:50%;border:2px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);color:white;font-size:22px;font-weight:700;cursor:pointer;font-family:'Comic Neue',cursive;">7</button>
+    <button onclick="pinPress('8')" style="height:70px;border-radius:50%;border:2px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);color:white;font-size:22px;font-weight:700;cursor:pointer;font-family:'Comic Neue',cursive;">8</button>
+    <button onclick="pinPress('9')" style="height:70px;border-radius:50%;border:2px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);color:white;font-size:22px;font-weight:700;cursor:pointer;font-family:'Comic Neue',cursive;">9</button>
+    <button onclick="pinDelete()" style="height:70px;border-radius:50%;border:2px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);color:white;font-size:18px;cursor:pointer;font-family:'Comic Neue',cursive;">⌫</button>
+    <button onclick="pinPress('0')" style="height:70px;border-radius:50%;border:2px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);color:white;font-size:22px;font-weight:700;cursor:pointer;font-family:'Comic Neue',cursive;">0</button>
+    <div></div>
+  </div>
+</div>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="splash-logo">
+    <div class="splash-icon">🐨</div>
+    <div class="splash-text-wrap">
+      <div class="splash-title">CULECAS</div>
+    </div>
+  </div>
+  <div class="splash-spinner"></div>
+</div>
+
+<!-- APP -->
+<div class="app" id="app-content">
+  <div class="header">
+    <div class="header-left">
+      <div class="logo">🐨</div>
+      <div>
+        <div class="app-title">CULECAS</div>
+        <div class="app-subtitle">Sandra - Noelia</div>
+      </div>
+    </div>
+    <span class="admin-badge">👑 Noelia</span>
+  </div>
+
+  <div class="members-legend" id="members-legend"></div>
+
+  <nav class="nav">
+    <button class="nav-btn active" onclick="showSection('calendario',this)">📅 Calendario</button>
+    <button class="nav-btn" onclick="showSection('tareas',this)">✅ Tareas</button>
+    <button class="nav-btn" onclick="showSection('recordatorios',this)">🔔 Avisos</button>
+    <button class="nav-btn" onclick="showSection('notas',this)">📝 Notas</button>
+    <button class="nav-btn" onclick="showSection('viajes',this)">✈️ Viajes</button>
+    <button class="nav-btn" onclick="showSection('documentos',this)">📁 Documentos</button>
+  </nav>
+
+  <div class="content">
+
+    <!-- CALENDARIO -->
+    <div class="section active" id="sec-calendario">
+      <div class="cal-header">
+        <div class="cal-title" id="cal-month-title"></div>
+        <div class="cal-nav">
+          <button onclick="changeMonth(-1)">‹</button>
+          <button onclick="changeMonth(1)">›</button>
+        </div>
+      </div>
+      <div class="cal-leyenda">
+        <div class="cal-leyenda-item"><div class="color-dot" style="background:#FF6F00"></div> Noelia</div>
+        <div class="cal-leyenda-item"><div class="color-dot" style="background:#1565C0"></div> Sandra</div>
+        <div class="cal-leyenda-item"><div class="color-tri" style="border-bottom:9px solid #2E7D32"></div> Trabajo Noelia</div>
+        <div class="cal-leyenda-item"><div class="color-tri" style="border-bottom:9px solid #C62828"></div> Trabajo Sandra</div>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div style="display:flex;gap:8px;margin-top:1rem;flex-wrap:wrap">
+        <button class="add-btn" onclick="showModal('evento')">+ Evento</button>
+        <button class="add-btn-alt" onclick="showModal('turno')">💼 Turno trabajo</button>
+      </div>
+      <div class="events-list" style="margin-top:1rem">
+        <div class="events-list-title">📌 Próximos eventos y turnos</div>
+        <div id="events-container"></div>
+      </div>
+    </div>
+
+    <!-- TAREAS -->
+    <div class="section" id="sec-tareas">
+      <div class="sec-header">
+        <div class="tasks-filter">
+          <button class="filter-pill active" onclick="filterTasks('todas',this)">Todas</button>
+          <button class="filter-pill" onclick="filterTasks('pendientes',this)">Pendientes</button>
+          <button class="filter-pill" onclick="filterTasks('hechas',this)">Hechas ✓</button>
+        </div>
+        <button class="add-btn" onclick="showModal('tarea')">+ Añadir</button>
+      </div>
+      <div id="tasks-container"></div>
+    </div>
+
+    <!-- AVISOS -->
+    <div class="section" id="sec-recordatorios">
+      <div class="sec-header">
+        <span class="sec-title">🔔 Avisos</span>
+        <button class="add-btn" onclick="showModal('recordatorio')">+ Añadir</button>
+      </div>
+      <div class="reminders-grid" id="reminders-container"></div>
+    </div>
+
+    <!-- NOTAS -->
+    <div class="section" id="sec-notas">
+      <div class="sec-header">
+        <span class="sec-title">📝 Notas</span>
+        <button class="add-btn" onclick="showModal('nota')">+ Nueva</button>
+      </div>
+      <div class="notes-grid" id="notes-container"></div>
+    </div>
+
+    <!-- VIAJES -->
+    <div class="section" id="sec-viajes">
+      <div class="sec-header">
+        <div class="tasks-filter">
+          <button class="filter-pill active" onclick="filterViajes('todos',this)">Todos</button>
+          <button class="filter-pill" onclick="filterViajes('sonado',this)">💜 Soñados</button>
+          <button class="filter-pill" onclick="filterViajes('planeado',this)">🟡 Planeados</button>
+          <button class="filter-pill" onclick="filterViajes('hecho',this)">✅ Hechos</button>
+        </div>
+        <button class="add-btn" onclick="showModal('viaje')">+ Añadir</button>
+      </div>
+      <div id="viajes-container"></div>
+    </div>
+
+    <!-- DOCUMENTOS -->
+    <div class="section" id="sec-documentos">
+      <div class="sec-header">
+        <span class="sec-title">📁 Documentos</span>
+        <button class="add-btn" onclick="showModal('documento')">+ Añadir</button>
+      </div>
+      <div class="docs-grid" id="docs-container"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="modal-title"></span>
+      <button class="icon-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modal-body"></div>
+    <div class="modal-actions">
+      <button class="btn-sec" onclick="closeModal()">Cancelar</button>
+      <button class="add-btn" onclick="saveModal()">✓ Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== SPLASH =====
+// ===== PIN =====
+const PINS = { '1234': 'Noelia', '5678': 'Sandra' };
+let pinBuffer = '';
+let currentUser = '';
+
+function pinPress(d) {
+  if (pinBuffer.length >= 4) return;
+  pinBuffer += d;
+  updateDots();
+  if (pinBuffer.length === 4) checkPin();
+}
+function pinDelete() {
+  pinBuffer = pinBuffer.slice(0,-1);
+  updateDots();
+  document.getElementById('pin-error').textContent = '';
+}
+function updateDots() {
+  for (let i=0;i<4;i++) {
+    const dot = document.getElementById('dot-'+i);
+    dot.style.background = i < pinBuffer.length ? 'white' : 'transparent';
+  }
+}
+function checkPin() {
+  if (PINS[pinBuffer]) {
+    currentUser = PINS[pinBuffer];
+    // Update admin badge with current user
+    document.querySelector('.admin-badge').textContent = '👑 ' + currentUser;
+    // Hide PIN, show app
+    const ps = document.getElementById('pin-screen');
+    ps.style.opacity = '0';
+    ps.style.transition = 'opacity 0.4s';
+    setTimeout(() => ps.style.display = 'none', 400);
+  } else {
+    document.getElementById('pin-error').textContent = 'PIN incorrecto, prueba de nuevo';
+    pinBuffer = '';
+    updateDots();
+  }
+}
+
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    const splash = document.getElementById('splash');
+    splash.classList.add('fade-out');
+    setTimeout(() => {
+      splash.classList.add('hidden');
+      // Show PIN screen
+      const ps = document.getElementById('pin-screen');
+      ps.style.display = 'flex';
+    }, 700);
+  }, 1800);
+});
+
+// ===== DATOS =====
+const MEMBERS = {
+  Noelia: { color: '#FF6F00', bg: '#FFF3E0', text: '#E65100' },
+  Sandra: { color: '#1565C0', bg: '#E3F2FD', text: '#0D47A1' }
+};
+const TRABAJO_COLORS = {
+  Noelia: { color: '#2E7D32', bg: '#E8F5E9', text: '#1B5E20' },
+  Sandra: { color: '#C62828', bg: '#FFEBEE', text: '#B71C1C' }
+};
+const memberOptions = Object.keys(MEMBERS).map(n => `<option value="${n}">${n}</option>`).join('');
+function getMemberStyle(p) { return MEMBERS[p] || { color: '#9C27B0', bg: '#F3E5F5', text: '#7B1FA2' }; }
+function getTrabajoStyle(p) { return TRABAJO_COLORS[p] || TRABAJO_COLORS['Noelia']; }
+
+const TACK_COLORS = ['red','blue','green','purple','orange','pink','brown','yellow'];
+const TACK_CSS = {
+  red:    'radial-gradient(circle at 35% 32%,#FF8A80,#B71C1C)',
+  blue:   'radial-gradient(circle at 35% 32%,#90CAF9,#1565C0)',
+  green:  'radial-gradient(circle at 35% 32%,#A5D6A7,#2E7D32)',
+  purple: 'radial-gradient(circle at 35% 32%,#CE93D8,#7B1FA2)',
+  orange: 'radial-gradient(circle at 35% 32%,#FFCC80,#E65100)',
+  pink:   'radial-gradient(circle at 35% 32%,#F48FB1,#C2185B)',
+  brown:  'radial-gradient(circle at 35% 32%,#BCAAA4,#5D4037)',
+  yellow: 'radial-gradient(circle at 35% 32%,#FFF176,#F57F17)'
+};
+function tack(i) {
+  const c = TACK_COLORS[i % TACK_COLORS.length];
+  return `<div class="tack" style="background:${TACK_CSS[c]}"><div class="tack-inner"></div></div>`;
+}
+
+const months = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const days = ['Lu','Ma','Mi','Ju','Vi','Sa','Do'];
+let currentYear = new Date().getFullYear();
+let currentMonth = new Date().getMonth();
+let modalType = '';
+let viajesFiltro = 'todos';
+
+const events = [];
+const tasks = [];
+const reminders = [];
+const docs = [];
+const notes = [];
+const viajes = [];
+
+// ===== LEYENDA =====
+function renderLegend() {
+  document.getElementById('members-legend').innerHTML = [
+    ...Object.entries(MEMBERS).map(([n,s]) => `<div class="member-pill" style="border:2px solid ${s.color}"><div class="color-dot" style="background:${s.color}"></div><span style="color:${s.text}">${n}</span></div>`),
+    ...Object.entries(TRABAJO_COLORS).map(([n,s]) => `<div class="member-pill" style="border:2px solid ${s.color}"><div class="color-tri" style="border-bottom:9px solid ${s.color}"></div><span style="color:${s.text}">Trabajo ${n}</span></div>`)
+  ].join('');
+}
+
+function showSection(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ===== CALENDARIO =====
+function renderCalendar() {
+  document.getElementById('cal-month-title').textContent = months[currentMonth] + ' ' + currentYear;
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = days.map(d => `<div class="cal-day-name">${d}</div>`).join('');
+  const first = new Date(currentYear, currentMonth, 1);
+  let startDay = (first.getDay() + 6) % 7;
+  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+  const prevDays = new Date(currentYear, currentMonth, 0).getDate();
+  const today = new Date();
+  for (let i = startDay - 1; i >= 0; i--)
+    grid.innerHTML += `<div class="cal-day other-month"><div class="day-circle">${prevDays - i}</div><div class="day-events"></div></div>`;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = today.getFullYear()===currentYear && today.getMonth()===currentMonth && today.getDate()===d;
+    const dots = events.filter(e => e.date === dateStr).map(e => {
+      if (e.tipo === 'turno') { const s = getTrabajoStyle(e.persona); return `<div class="day-event-tri" style="border-bottom:8px solid ${s.color}"></div>`; }
+      const s = getMemberStyle(e.persona); return `<div class="day-event-dot" style="background:${s.color}"></div>`;
+    }).join('');
+    grid.innerHTML += `<div class="cal-day${isToday?' today':''}"><div class="day-circle">${d}</div><div class="day-events">${dots}</div></div>`;
+  }
+  renderEvents();
+}
+
+function renderEvents() {
+  document.getElementById('events-container').innerHTML = [...events].sort((a,b) => a.date.localeCompare(b.date)).map((e,i) => {
+    const isTurno = e.tipo === 'turno';
+    const s = isTurno ? getTrabajoStyle(e.persona) : getMemberStyle(e.persona);
+    const label = new Date(e.date + 'T12:00:00').toLocaleDateString('es-ES', { day:'numeric', month:'short' });
+    return `<div class="event-item">${tack(i)}<div class="event-bar" style="background:${s.color}"></div><div class="event-info"><div class="event-name">${isTurno ? '💼 ' : ''}${e.name}</div><div class="event-meta">📅 ${label} · ⏰ ${e.time}<span class="member-tag" style="background:${s.bg};color:${s.text}">${e.persona}</span></div></div><button class="icon-btn" onclick="deleteItem(events,${e.id},renderCalendar)">🗑️</button></div>`;
+  }).join('');
+}
+
+// ===== TAREAS =====
+function renderTasks(filter = 'todas') {
+  let list = filter === 'pendientes' ? tasks.filter(t => !t.done) : filter === 'hechas ✓' ? tasks.filter(t => t.done) : tasks;
+  document.getElementById('tasks-container').innerHTML = list.map((t,i) => {
+    const s = getMemberStyle(t.persona);
+    return `<div class="task-item${t.done?' done':''}">${tack(i)}<div class="task-check${t.done?' checked':''}" onclick="toggleTask(${t.id})">${t.done?'✓':''}</div><div class="task-body"><div class="task-title">${t.title}</div><div class="task-meta"><span class="tag ${t.tag}">${t.tag}</span><span>📅 ${t.fecha}</span><span class="member-tag" style="background:${s.bg};color:${s.text}">${t.persona}</span></div></div><button class="icon-btn" onclick="deleteItem(tasks,${t.id},()=>renderTasks(currentFilter()))">🗑️</button></div>`;
+  }).join('');
+}
+function currentFilter() { const a = document.querySelector('#sec-tareas .filter-pill.active'); return a ? a.textContent.toLowerCase().trim() : 'todas'; }
+function toggleTask(id) { const t = tasks.find(t => t.id === id); if (t) t.done = !t.done; renderTasks(currentFilter()); }
+function filterTasks(f, btn) { document.querySelectorAll('#sec-tareas .filter-pill').forEach(p => p.classList.remove('active')); btn.classList.add('active'); renderTasks(f); }
+
+// ===== AVISOS =====
+function renderReminders() {
+  document.getElementById('reminders-container').innerHTML = reminders.map((r,i) => {
+    const s = getMemberStyle(r.persona);
+    const label = r.when === 'hoy' ? '🔴 Hoy' : r.when === 'manana' ? '🟢 Mañana' : '🌸 Próximamente';
+    return `<div class="reminder-card" style="border-top:4px solid ${s.color}">${tack(i)}<div class="reminder-icon">${r.icon}</div><div class="reminder-title">${r.title}</div><div class="reminder-time">🕐 ${r.time}</div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px"><span class="reminder-badge ${r.when}">${label}</span><span class="member-tag" style="background:${s.bg};color:${s.text}">${r.persona}</span></div></div>`;
+  }).join('');
+}
+
+// ===== NOTAS =====
+function renderNotes() {
+  const nc = { Noelia: { bg: '#FFF3E0', title: '#E65100' }, Sandra: { bg: '#E3F2FD', title: '#1565C0' } };
+  document.getElementById('notes-container').innerHTML = notes.map((n,i) => {
+    const s = getMemberStyle(n.persona);
+    const c = nc[n.persona] || { bg: '#F3E5F5', title: '#7B1FA2' };
+    return `<div class="note-card" style="background:${c.bg}">${tack(i)}<div style="display:flex;justify-content:space-between;align-items:flex-start"><div class="note-title" style="color:${c.title}">${n.title}</div><button class="icon-btn" onclick="deleteItem(notes,${n.id},renderNotes)">🗑️</button></div><div class="note-body" style="color:${s.text}">${n.body.replace(/\n/g,'<br>')}</div><div class="note-footer"><span class="member-tag" style="background:${s.bg};color:${s.text}">${n.persona}</span><span class="note-date">${n.fecha}</span></div></div>`;
+  }).join('');
+}
+
+// ===== DOCUMENTOS =====
+function renderDocs() {
+  document.getElementById('docs-container').innerHTML = docs.map((d,i) => {
+    const s = getMemberStyle(d.persona);
+    const pdfLink = d.pdfFile ? `<a href="${d.pdfFile}" target="_blank" style="font-size:12px;color:#E91E8C;font-weight:700;margin-top:6px;display:block">📄 Ver hoja de ruta</a>` : '';
+    return `<div class="doc-card" style="border-top:4px solid ${s.color}">${tack(i)}<div style="font-size:26px;margin-bottom:8px">${d.icon}</div><div class="doc-name">${d.name}</div><div class="doc-meta">${d.type.toUpperCase()} · ${d.fecha}</div><div style="margin-top:8px"><span class="member-tag" style="background:${s.bg};color:${s.text}">${d.persona}</span></div>${pdfLink}</div>`;
+  }).join('');
+}
+
+// ===== VIAJES =====
+function renderViajes() {
+  const list = viajesFiltro === 'todos' ? viajes : viajes.filter(v => v.estado === viajesFiltro);
+  const estadoLabels = { sonado: '💜 Soñado', planeado: '🟡 Planeado', hecho: '✅ Hecho' };
+  document.getElementById('viajes-container').innerHTML = list.map((v,i) => {
+    const s = getMemberStyle(v.persona);
+    const checks = v.checklist.map(c => `<div class="viaje-check-item${c.done?' done-item':''}"><div class="mini-check${c.done?' checked':''}" onclick="toggleCheck(${v.id},${c.id})">${c.done?'✓':''}</div><span>${c.texto}</span></div>`).join('');
+    const pdfLink = v.pdfFile ? `<a href="${v.pdfFile}" target="_blank" style="display:inline-block;margin-top:8px;font-size:13px;color:#E91E8C;font-weight:700">📄 Ver hoja de ruta</a>` : '';
+    const fotosHtml = v.fotos.length > 0 ? `<div class="viaje-check-list"><div class="viaje-check-title">📸 Recuerdos</div><div class="viaje-fotos">${v.fotos.map(f => `<span class="viaje-foto-tag">📸 ${f}</span>`).join('')}</div></div>` : '';
+    return `<div class="viaje-card">${tack(i)}<div class="viaje-header"><div><div class="viaje-destino">${v.destino}</div><div class="viaje-fecha">📅 ${v.fecha}</div><span class="viaje-estado ${v.estado}">${estadoLabels[v.estado]}</span></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px"><span class="member-tag" style="background:${s.bg};color:${s.text}">${v.persona}</span><button class="icon-btn" onclick="deleteItem(viajes,${v.id},renderViajes)">🗑️</button></div></div><div class="viaje-check-list"><div class="viaje-check-title">📋 Preparativos</div>${checks}<button class="add-check-btn" onclick="addCheck(${v.id})">+ Añadir preparativo</button>${pdfLink}</div>${fotosHtml}</div>`;
+  }).join('');
+}
+
+function filterViajes(f, btn) {
+  viajesFiltro = f;
+  document.querySelectorAll('#sec-viajes .filter-pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active'); renderViajes();
+}
+function toggleCheck(vId, cId) {
+  const v = viajes.find(v => v.id === vId);
+  if (v) { const c = v.checklist.find(c => c.id === cId); if (c) c.done = !c.done; }
+  renderViajes();
+}
+function addCheck(vId) {
+  const texto = prompt('Añadir a preparativos:');
+  if (!texto) return;
+  const v = viajes.find(v => v.id === vId);
+  if (v) v.checklist.push({ id: Date.now(), texto, done: false });
+  renderViajes();
+}
+
+function changeMonth(dir) {
+  currentMonth += dir;
+  if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+  if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+  renderCalendar();
+}
+function deleteItem(arr, id, ...renders) {
+  arr.splice(arr.findIndex(x => x.id === id), 1);
+  renders.forEach(r => r());
+}
+
+// ===== MODAL =====
+const modalForms = {
+  evento: `<label>Nombre</label><input type="text" id="m-name" placeholder="Ej: Cine, comida..."><label>Quien</label><select id="m-persona">${memberOptions}</select><label>Fecha</label><input type="date" id="m-date"><label>Hora</label><input type="time" id="m-time">`,
+  turno:  `<label>Descripcion</label><input type="text" id="m-name" placeholder="Ej: Turno mañana..."><label>Quien</label><select id="m-persona">${memberOptions}</select><label>Fecha</label><input type="date" id="m-date"><label>Hora inicio</label><input type="time" id="m-time">`,
+  tarea:  `<label>Tarea</label><input type="text" id="m-name" placeholder="Descripcion"><label>Quien</label><select id="m-persona">${memberOptions}</select><label>Categoria</label><select id="m-tag"><option value="planes">Planes</option><option value="personal">Personal</option><option value="casa">Casa</option><option value="urgente">Urgente</option><option value="trabajo">Trabajo</option></select><label>Fecha</label><input type="date" id="m-date">`,
+  recordatorio: `<label>Titulo</label><input type="text" id="m-name" placeholder="Ej: Cumpleaños..."><label>Quien</label><select id="m-persona">${memberOptions}</select><label>Hora / Frecuencia</label><input type="text" id="m-time" placeholder="Ej: 09:00 / Cada lunes"><label>Cuando</label><select id="m-when"><option value="hoy">Hoy</option><option value="manana">Mañana</option><option value="pronto">Próximamente</option></select>`,
+  nota:   `<label>Titulo</label><input type="text" id="m-name" placeholder="Ej: Ideas viaje"><label>Quien</label><select id="m-persona">${memberOptions}</select><label>Contenido</label><textarea id="m-content" placeholder="Escribe aqui..."></textarea>`,
+  viaje:  `<label>Destino</label><input type="text" id="m-name" placeholder="Ej: Roma, Paris..."><label>Fecha prevista</label><input type="text" id="m-fecha" placeholder="Ej: Sep 2026"><label>Estado</label><select id="m-estado"><option value="sonado">💜 Soñado</option><option value="planeado">🟡 Planeado</option><option value="hecho">✅ Hecho</option></select><label>Quien lo propone</label><select id="m-persona">${memberOptions}</select><label>Primer preparativo</label><input type="text" id="m-check" placeholder="Ej: Buscar vuelos"><label>PDF hoja de ruta (nombre archivo)</label><input type="text" id="m-pdf" placeholder="Ej: ruta_roma.pdf">`,
+  documento: `<label>Nombre</label><input type="text" id="m-name" placeholder="Ej: Fotos viaje"><label>Quien</label><select id="m-persona">${memberOptions}</select><label>Tipo</label><select id="m-type"><option value="note">Nota</option><option value="pdf">PDF</option><option value="img">Imagen</option></select><label>PDF / archivo (nombre)</label><input type="text" id="m-pdf" placeholder="Ej: documento.pdf">`
+};
+const modalTitles = {
+  evento: '🌸 Nuevo evento', turno: '💼 Turno de trabajo',
+  tarea: '✅ Nueva tarea', recordatorio: '🔔 Nuevo aviso',
+  nota: '📝 Nueva nota', viaje: '✈️ Nuevo viaje', documento: '📁 Nuevo documento'
+};
+
+function showModal(type) {
+  modalType = type;
+  document.getElementById('modal-title').textContent = modalTitles[type];
+  document.getElementById('modal-body').innerHTML = modalForms[type];
+  openModal();
+}
+function openModal() { document.getElementById('modal').classList.add('open'); }
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+
+function saveModal() {
+  const name = document.getElementById('m-name')?.value.trim(); if (!name) return;
+  const persona = document.getElementById('m-persona')?.value || 'Noelia';
+  const today = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+  const pdfVal = document.getElementById('m-pdf')?.value.trim() || '';
+  const pdfFile = pdfVal ? pdfVal : null;
+
+  if (modalType === 'evento' || modalType === 'turno') {
+    const date = document.getElementById('m-date')?.value || '';
+    const time = document.getElementById('m-time')?.value || '12:00';
+    events.push({ id: Date.now(), name, date, time, persona, tipo: modalType === 'turno' ? 'turno' : 'evento' });
+    renderCalendar();
+  } else if (modalType === 'tarea') {
+    const tag = document.getElementById('m-tag')?.value || 'planes';
+    const d = document.getElementById('m-date')?.value;
+    const fecha = d ? new Date(d + 'T12:00:00').toLocaleDateString('es-ES', { day:'numeric', month:'short' }) : '-';
+    tasks.push({ id: Date.now(), title: name, done: false, tag, fecha, persona });
+    renderTasks();
+  } else if (modalType === 'recordatorio') {
+    const time = document.getElementById('m-time')?.value || 'Sin hora';
+    const when = document.getElementById('m-when')?.value || 'pronto';
+    reminders.push({ id: Date.now(), title: name, time, when, icon: '🌸', persona });
+    renderReminders();
+  } else if (modalType === 'nota') {
+    const body = document.getElementById('m-content')?.value || '';
+    notes.push({ id: Date.now(), title: name, body, persona, fecha: today });
+    renderNotes();
+  } else if (modalType === 'viaje') {
+    const fecha = document.getElementById('m-fecha')?.value || 'Por definir';
+    const estado = document.getElementById('m-estado')?.value || 'sonado';
+    const check = document.getElementById('m-check')?.value.trim();
+    const checklist = check ? [{ id: 1, texto: check, done: false }] : [];
+    viajes.push({ id: Date.now(), destino: name, fecha, estado, persona, checklist, fotos: [], pdfFile });
+    renderViajes();
+  } else if (modalType === 'documento') {
+    const type = document.getElementById('m-type')?.value || 'note';
+    const iconMap = { note: '📝', pdf: '📄', img: '📷' };
+    docs.push({ id: Date.now(), name, type, fecha: today, icon: iconMap[type], persona, pdfFile });
+    renderDocs();
+  }
+  closeModal();
+}
+
+// ===== INIT =====
+renderLegend();
+renderCalendar();
+renderTasks();
+renderReminders();
+renderNotes();
+renderViajes();
+renderDocs();
+</script>
+</body>
+</html>
