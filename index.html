@@ -717,7 +717,7 @@ function renderEvents() {
     const isTurno = e.tipo === 'turno';
     const s = isTurno ? getTrabajoStyle(e.persona) : getMemberStyle(e.persona);
     const label = new Date(e.date + 'T12:00:00').toLocaleDateString('es-ES', { day:'numeric', month:'short' });
-    return `<div class="event-item">${tack(i)}<div class="event-bar" style="background:${s.color}"></div><div class="event-info"><div class="event-name">${isTurno ? '💼 ' : ''}${e.name}</div><div class="event-meta">📅 ${label} · ⏰ ${e.time}<span class="member-tag" style="background:${s.bg};color:${s.text}">${e.persona}</span></div></div><button class="icon-btn" onclick="deleteItem(events,${e.id},renderCalendar)">🗑️</button></div>`;
+    return `<div class="event-item">${tack(i)}<div class="event-bar" style="background:${s.color}"></div><div class="event-info"><div class="event-name">${isTurno ? '💼 ' : ''}${e.name}</div><div class="event-meta">📅 ${label} · ⏰ ${e.time}<span class="member-tag" style="background:${s.bg};color:${s.text}">${e.persona}</span></div></div><button class="icon-btn" onclick="deleteItem(events,${e.id},'culecas_eventos')">🗑️</button></div>`;
   }).join('');
 }
 
@@ -726,11 +726,11 @@ function renderTasks(filter = 'todas') {
   let list = filter === 'pendientes' ? tasks.filter(t => !t.done) : filter === 'hechas ✓' ? tasks.filter(t => t.done) : tasks;
   document.getElementById('tasks-container').innerHTML = list.map((t,i) => {
     const s = getMemberStyle(t.persona);
-    return `<div class="task-item${t.done?' done':''}">${tack(i)}<div class="task-check${t.done?' checked':''}" onclick="toggleTask(${t.id})">${t.done?'✓':''}</div><div class="task-body"><div class="task-title">${t.title}</div><div class="task-meta"><span class="tag ${t.tag}">${t.tag}</span><span>📅 ${t.fecha}</span><span class="member-tag" style="background:${s.bg};color:${s.text}">${t.persona}</span></div></div><button class="icon-btn" onclick="deleteItem(tasks,${t.id},()=>renderTasks(currentFilter()))">🗑️</button></div>`;
+    return `<div class="task-item${t.done?' done':''}">${tack(i)}<div class="task-check${t.done?' checked':''}" onclick="toggleTask(${t.id})">${t.done?'✓':''}</div><div class="task-body"><div class="task-title">${t.title}</div><div class="task-meta"><span class="tag ${t.tag}">${t.tag}</span><span>📅 ${t.fecha}</span><span class="member-tag" style="background:${s.bg};color:${s.text}">${t.persona}</span></div></div><button class="icon-btn" onclick="deleteItem(tasks,${t.id},'culecas_tareas')">🗑️</button></div>`;
   }).join('');
 }
 function currentFilter() { const a = document.querySelector('#sec-tareas .filter-pill.active'); return a ? a.textContent.toLowerCase().trim() : 'todas'; }
-function toggleTask(id) { const t = tasks.find(t => t.id === id); if (t) t.done = !t.done; renderTasks(currentFilter()); }
+async function toggleTask(id) { const t = tasks.find(t => t.id === id); if (t) { await sbFetch('culecas_tareas', 'PATCH', { done: !t.done }, id); loadAll(); } }
 function filterTasks(f, btn) { document.querySelectorAll('#sec-tareas .filter-pill').forEach(p => p.classList.remove('active')); btn.classList.add('active'); renderTasks(f); }
 
 // ===== AVISOS =====
@@ -748,7 +748,7 @@ function renderNotes() {
   document.getElementById('notes-container').innerHTML = notes.map((n,i) => {
     const s = getMemberStyle(n.persona);
     const c = nc[n.persona] || { bg: '#F3E5F5', title: '#7B1FA2' };
-    return `<div class="note-card" style="background:${c.bg}">${tack(i)}<div style="display:flex;justify-content:space-between;align-items:flex-start"><div class="note-title" style="color:${c.title}">${n.title}</div><button class="icon-btn" onclick="deleteItem(notes,${n.id},renderNotes)">🗑️</button></div><div class="note-body" style="color:${s.text}">${n.body.replace(/\n/g,'<br>')}</div><div class="note-footer"><span class="member-tag" style="background:${s.bg};color:${s.text}">${n.persona}</span><span class="note-date">${n.fecha}</span></div></div>`;
+    return `<div class="note-card" style="background:${c.bg}">${tack(i)}<div style="display:flex;justify-content:space-between;align-items:flex-start"><div class="note-title" style="color:${c.title}">${n.title}</div><button class="icon-btn" onclick="deleteItem(notes,${n.id},'culecas_notas')">🗑️</button></div><div class="note-body" style="color:${s.text}">${n.body.replace(/\n/g,'<br>')}</div><div class="note-footer"><span class="member-tag" style="background:${s.bg};color:${s.text}">${n.persona}</span><span class="note-date">${n.fecha}</span></div></div>`;
   }).join('');
 }
 
@@ -770,7 +770,7 @@ function renderViajes() {
     const checks = v.checklist.map(c => `<div class="viaje-check-item${c.done?' done-item':''}"><div class="mini-check${c.done?' checked':''}" onclick="toggleCheck(${v.id},${c.id})">${c.done?'✓':''}</div><span>${c.texto}</span></div>`).join('');
     const pdfLink = v.pdfFile ? `<a href="${v.pdfFile}" target="_blank" style="display:inline-block;margin-top:8px;font-size:13px;color:#E91E8C;font-weight:700">📄 Ver hoja de ruta</a>` : '';
     const fotosHtml = v.fotos.length > 0 ? `<div class="viaje-check-list"><div class="viaje-check-title">📸 Recuerdos</div><div class="viaje-fotos">${v.fotos.map(f => `<span class="viaje-foto-tag">📸 ${f}</span>`).join('')}</div></div>` : '';
-    return `<div class="viaje-card">${tack(i)}<div class="viaje-header"><div><div class="viaje-destino">${v.destino}</div><div class="viaje-fecha">📅 ${v.fecha}</div><span class="viaje-estado ${v.estado}">${estadoLabels[v.estado]}</span></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px"><span class="member-tag" style="background:${s.bg};color:${s.text}">${v.persona}</span><button class="icon-btn" onclick="deleteItem(viajes,${v.id},renderViajes)">🗑️</button></div></div><div class="viaje-check-list"><div class="viaje-check-title">📋 Preparativos</div>${checks}<button class="add-check-btn" onclick="addCheck(${v.id})">+ Añadir preparativo</button>${pdfLink}</div>${fotosHtml}</div>`;
+    return `<div class="viaje-card">${tack(i)}<div class="viaje-header"><div><div class="viaje-destino">${v.destino}</div><div class="viaje-fecha">📅 ${v.fecha}</div><span class="viaje-estado ${v.estado}">${estadoLabels[v.estado]}</span></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px"><span class="member-tag" style="background:${s.bg};color:${s.text}">${v.persona}</span><button class="icon-btn" onclick="deleteItem(viajes,${v.id},'culecas_viajes')">🗑️</button></div></div><div class="viaje-check-list"><div class="viaje-check-title">📋 Preparativos</div>${checks}<button class="add-check-btn" onclick="addCheck(${v.id})">+ Añadir preparativo</button>${pdfLink}</div>${fotosHtml}</div>`;
   }).join('');
 }
 
@@ -779,10 +779,14 @@ function filterViajes(f, btn) {
   document.querySelectorAll('#sec-viajes .filter-pill').forEach(p => p.classList.remove('active'));
   btn.classList.add('active'); renderViajes();
 }
-function toggleCheck(vId, cId) {
+async function toggleCheck(vId, cId) {
   const v = viajes.find(v => v.id === vId);
-  if (v) { const c = v.checklist.find(c => c.id === cId); if (c) c.done = !c.done; }
-  renderViajes();
+  if (v) {
+    const c = v.checklist.find(c => c.id === cId);
+    if (c) c.done = !c.done;
+    await sbFetch('culecas_viajes', 'PATCH', { checklist: v.checklist }, vId);
+    loadAll();
+  }
 }
 function addCheck(vId) {
   const texto = prompt('Añadir a preparativos:');
@@ -798,9 +802,9 @@ function changeMonth(dir) {
   if (currentMonth < 0) { currentMonth = 11; currentYear--; }
   renderCalendar();
 }
-function deleteItem(arr, id, ...renders) {
-  arr.splice(arr.findIndex(x => x.id === id), 1);
-  renders.forEach(r => r());
+async function deleteItem(arr, id, table, ...renders) {
+  await sbFetch(table, 'DELETE', null, id);
+  loadAll();
 }
 
 // ===== MODAL =====
@@ -828,7 +832,7 @@ function showModal(type) {
 function openModal() { document.getElementById('modal').classList.add('open'); }
 function closeModal() { document.getElementById('modal').classList.remove('open'); }
 
-function saveModal() {
+async function saveModal() {
   const name = document.getElementById('m-name')?.value.trim(); if (!name) return;
   const persona = document.getElementById('m-persona')?.value || 'Noelia';
   const today = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
@@ -838,47 +842,76 @@ function saveModal() {
   if (modalType === 'evento' || modalType === 'turno') {
     const date = document.getElementById('m-date')?.value || '';
     const time = document.getElementById('m-time')?.value || '12:00';
-    events.push({ id: Date.now(), name, date, time, persona, tipo: modalType === 'turno' ? 'turno' : 'evento' });
-    renderCalendar();
+    await sbFetch('culecas_eventos', 'POST', { name, date, time, persona, tipo: modalType === 'turno' ? 'turno' : 'evento' });
   } else if (modalType === 'tarea') {
     const tag = document.getElementById('m-tag')?.value || 'planes';
     const d = document.getElementById('m-date')?.value;
     const fecha = d ? new Date(d + 'T12:00:00').toLocaleDateString('es-ES', { day:'numeric', month:'short' }) : '-';
-    tasks.push({ id: Date.now(), title: name, done: false, tag, fecha, persona });
-    renderTasks();
+    await sbFetch('culecas_tareas', 'POST', { title: name, done: false, tag, fecha, persona });
   } else if (modalType === 'recordatorio') {
     const time = document.getElementById('m-time')?.value || 'Sin hora';
     const when = document.getElementById('m-when')?.value || 'pronto';
-    reminders.push({ id: Date.now(), title: name, time, when, icon: '🌸', persona });
-    renderReminders();
+    await sbFetch('culecas_avisos', 'POST', { title: name, time, when, icon: '🌸', persona });
   } else if (modalType === 'nota') {
     const body = document.getElementById('m-content')?.value || '';
-    notes.push({ id: Date.now(), title: name, body, persona, fecha: today });
-    renderNotes();
+    await sbFetch('culecas_notas', 'POST', { title: name, body, persona, fecha: today });
   } else if (modalType === 'viaje') {
     const fecha = document.getElementById('m-fecha')?.value || 'Por definir';
     const estado = document.getElementById('m-estado')?.value || 'sonado';
     const check = document.getElementById('m-check')?.value.trim();
-    const checklist = check ? [{ id: 1, texto: check, done: false }] : [];
-    viajes.push({ id: Date.now(), destino: name, fecha, estado, persona, checklist, fotos: [], pdfFile });
-    renderViajes();
+    const checklist = check ? [{ texto: check, done: false }] : [];
+    await sbFetch('culecas_viajes', 'POST', { destino: name, fecha, estado, persona, checklist, fotos: [], pdf_file: pdfFile });
   } else if (modalType === 'documento') {
     const type = document.getElementById('m-type')?.value || 'note';
     const iconMap = { note: '📝', pdf: '📄', img: '📷' };
-    docs.push({ id: Date.now(), name, type, fecha: today, icon: iconMap[type], persona, pdfFile });
-    renderDocs();
+    await sbFetch('culecas_documentos', 'POST', { name, type, fecha: today, icon: iconMap[type], persona, pdf_file: pdfFile });
   }
   closeModal();
+  loadAll();
+}
+
+
+// ===== SUPABASE =====
+const SUPABASE_URL = 'https://rufqicrpcxnxysxouaxt.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_cljKe44XH76vob40WyutYg_nilFVYUM';
+
+async function sbFetch(table, method='GET', body=null, id=null) {
+  const url = `${SUPABASE_URL}/rest/v1/${table}${id ? `?id=eq.${id}` : ''}`;
+  const headers = {
+    'apikey': SUPABASE_KEY,
+    'Authorization': `Bearer ${SUPABASE_KEY}`,
+    'Content-Type': 'application/json',
+    'Prefer': method === 'POST' ? 'return=representation' : ''
+  };
+  if (method === 'PATCH') headers['Prefer'] = 'return=minimal';
+  const res = await fetch(url, { method, headers, body: body ? JSON.stringify(body) : null });
+  if (method === 'GET') return res.json();
+  if (method === 'POST') return res.json();
+  return res;
+}
+
+async function loadAll() {
+  const [evs, tks, avs, nts, vjs, docs_data] = await Promise.all([
+    sbFetch('culecas_eventos'),
+    sbFetch('culecas_tareas'),
+    sbFetch('culecas_avisos'),
+    sbFetch('culecas_notas'),
+    sbFetch('culecas_viajes'),
+    sbFetch('culecas_documentos'),
+  ]);
+  events.length = 0; (evs||[]).forEach(e => events.push(e));
+  tasks.length = 0; (tks||[]).forEach(t => tasks.push(t));
+  reminders.length = 0; (avs||[]).forEach(a => reminders.push(a));
+  notes.length = 0; (nts||[]).forEach(n => notes.push(n));
+  viajes.length = 0; (vjs||[]).forEach(v => { v.checklist = v.checklist||[]; v.fotos = v.fotos||[]; viajes.push(v); });
+  docs.length = 0; (docs_data||[]).forEach(d => docs.push(d));
+  renderCalendar(); renderTasks(); renderReminders(); renderNotes(); renderViajes(); renderDocs();
 }
 
 // ===== INIT =====
 renderLegend();
-renderCalendar();
-renderTasks();
-renderReminders();
-renderNotes();
-renderViajes();
-renderDocs();
+loadAll();
+setInterval(loadAll, 30000);
 </script>
 </body>
 </html>
