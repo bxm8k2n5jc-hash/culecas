@@ -738,7 +738,7 @@ function renderReminders() {
   document.getElementById('reminders-container').innerHTML = reminders.map((r,i) => {
     const s = getMemberStyle(r.persona);
     const label = r.when === 'hoy' ? '🔴 Hoy' : r.when === 'manana' ? '🟢 Mañana' : '🌸 Próximamente';
-    return `<div class="reminder-card" style="border-top:4px solid ${s.color}">${tack(i)}<div class="reminder-icon">${r.icon}</div><div class="reminder-title">${r.title}</div><div class="reminder-time">🕐 ${r.time}</div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px"><span class="reminder-badge ${r.when}">${label}</span><span class="member-tag" style="background:${s.bg};color:${s.text}">${r.persona}</span></div></div>`;
+    return `<div class="reminder-card" style="border-top:4px solid ${s.color}">${tack(i)}<div style="display:flex;justify-content:flex-end"><button class="icon-btn" onclick="deleteItem(reminders,${r.id},'culecas_avisos')">🗑️</button></div><div class="reminder-icon">${r.icon}</div><div class="reminder-title">${r.title}</div><div class="reminder-time">🕐 ${r.time}</div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px"><span class="reminder-badge ${r.when}">${label}</span><span class="member-tag" style="background:${s.bg};color:${s.text}">${r.persona}</span></div></div>`;
   }).join('');
 }
 
@@ -754,10 +754,12 @@ function renderNotes() {
 
 // ===== DOCUMENTOS =====
 function renderDocs() {
+  const GITHUB_BASE = 'https://raw.githubusercontent.com/bxm8k2n5jc-hash/culecas/main/';
   document.getElementById('docs-container').innerHTML = docs.map((d,i) => {
     const s = getMemberStyle(d.persona);
-    const pdfLink = d.pdfFile ? `<a href="${d.pdfFile}" target="_blank" style="font-size:12px;color:#E91E8C;font-weight:700;margin-top:6px;display:block">📄 Ver hoja de ruta</a>` : '';
-    return `<div class="doc-card" style="border-top:4px solid ${s.color}">${tack(i)}<div style="font-size:26px;margin-bottom:8px">${d.icon}</div><div class="doc-name">${d.name}</div><div class="doc-meta">${d.type.toUpperCase()} · ${d.fecha}</div><div style="margin-top:8px"><span class="member-tag" style="background:${s.bg};color:${s.text}">${d.persona}</span></div>${pdfLink}</div>`;
+    const pdfUrl = d.pdf_file ? GITHUB_BASE + d.pdf_file : null;
+    const pdfLink = pdfUrl ? `<a href="${pdfUrl}" target="_blank" style="font-size:12px;color:#E91E8C;font-weight:700;margin-top:6px;display:block">📄 Ver archivo</a>` : '';
+    return `<div class="doc-card" style="border-top:4px solid ${s.color}">${tack(i)}<div style="display:flex;justify-content:space-between;align-items:flex-start"><div style="font-size:26px">${d.icon}</div><button class="icon-btn" onclick="deleteItem(docs,${d.id},'culecas_documentos')">🗑️</button></div><div class="doc-name" style="margin-top:6px">${d.name}</div><div class="doc-meta">${d.type.toUpperCase()} · ${d.fecha}</div><div style="margin-top:8px"><span class="member-tag" style="background:${s.bg};color:${s.text}">${d.persona}</span></div>${pdfLink}</div>`;
   }).join('');
 }
 
