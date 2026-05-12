@@ -1,0 +1,15 @@
+{
+  "name": "CULECAS",
+  "short_name": "Culecas",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#6D1B4E",
+  "theme_color": "#6D1B4E",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%236D1B4E'/><text y='.9em' font-size='80' x='10'>🐨</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ]
+}
