@@ -382,6 +382,7 @@
     .doc-card:hover { transform: rotate(0) scale(1.02); z-index: 5; }
     .doc-name { font-size: 15px; font-weight: 700; color: #7B1FA2; margin-bottom: 2px; }
     .doc-meta { font-size: 13px; color: #CE93D8; }
+    .cal-day.selected .day-circle { background: rgba(233,30,140,0.2); color: #7B1FA2; font-weight:700; box-shadow: 0 0 0 2px #E91E8C; }
 
     /* MODAL */
     .modal-bg {
@@ -666,6 +667,8 @@ let currentYear = new Date().getFullYear();
 let currentMonth = new Date().getMonth();
 let modalType = '';
 let viajesFiltro = 'todos';
+let selectedDay = null;
+let editingId = null;
 
 const events = [];
 const tasks = [];
@@ -708,18 +711,32 @@ function renderCalendar() {
       if (e.tipo === 'turno') { const s = getTrabajoStyle(e.persona); return `<div class="day-event-tri" style="border-bottom:8px solid ${s.color}"></div>`; }
       const s = getMemberStyle(e.persona); return `<div class="day-event-dot" style="background:${s.color}"></div>`;
     }).join('');
-    grid.innerHTML += `<div class="cal-day${isToday?' today':''}"><div class="day-circle">${d}</div><div class="day-events">${dots}</div></div>`;
+    grid.innerHTML += `<div class="cal-day${isToday?' today':''}${selectedDay===dateStr?' selected':''}" onclick="selectDay('${dateStr}')"><div class="day-circle">${d}</div><div class="day-events">${dots}</div></div>`;
   }
   renderEvents();
 }
 
+function selectDay(dateStr) {
+  selectedDay = selectedDay === dateStr ? null : dateStr;
+  renderCalendar();
+}
+
 function renderEvents() {
-  document.getElementById('events-container').innerHTML = [...events].sort((a,b) => a.date.localeCompare(b.date)).map((e,i) => {
+  const filtered = selectedDay 
+    ? events.filter(e => e.date === selectedDay)
+    : [...events].sort((a,b) => a.date.localeCompare(b.date));
+  const title = selectedDay 
+    ? '📌 Eventos del ' + new Date(selectedDay+'T12:00:00').toLocaleDateString('es-ES',{day:'numeric',month:'long'})
+    : '📌 Próximos eventos y turnos';
+  const titleEl = document.querySelector('.events-list-title');
+  if (titleEl) titleEl.textContent = title;
+  document.getElementById('events-container').innerHTML = filtered.map((e,i) => {
     const isTurno = e.tipo === 'turno';
     const s = isTurno ? getTrabajoStyle(e.persona) : getMemberStyle(e.persona);
     const label = new Date(e.date + 'T12:00:00').toLocaleDateString('es-ES', { day:'numeric', month:'short' });
-    return `<div class="event-item">${tack(i)}<div class="event-bar" style="background:${s.color}"></div><div class="event-info"><div class="event-name">${isTurno ? '💼 ' : ''}${e.name}</div><div class="event-meta">📅 ${label} · ⏰ ${e.time}<span class="member-tag" style="background:${s.bg};color:${s.text}">${e.persona}</span></div></div><button class="icon-btn" onclick="deleteItem(events,${e.id},'culecas_eventos')">🗑️</button></div>`;
-  }).join('');
+    const timeFin = e.time_fin ? ` - ${e.time_fin}` : '';
+    return `<div class="event-item">${tack(i)}<div class="event-bar" style="background:${s.color}"></div><div class="event-info"><div class="event-name">${isTurno ? '💼 ' : ''}${e.name}</div><div class="event-meta">📅 ${label} · ⏰ ${e.time}${timeFin}<span class="member-tag" style="background:${s.bg};color:${s.text}">${e.persona}</span></div></div><div style="display:flex;gap:4px"><button class="icon-btn" onclick="editEvent(${e.id})">✏️</button><button class="icon-btn" onclick="deleteItem(events,${e.id},'culecas_eventos')">🗑️</button></div></div>`;
+  }).join('') || (selectedDay ? '<div style="color:white;text-align:center;padding:1rem;font-size:14px;text-shadow:0 1px 3px rgba(0,0,0,0.3)">No hay eventos este día</div>' : '');
 }
 
 // ===== TAREAS =====
@@ -733,6 +750,23 @@ function renderTasks(filter = 'todas') {
 function currentFilter() { const a = document.querySelector('#sec-tareas .filter-pill.active'); return a ? a.textContent.toLowerCase().trim() : 'todas'; }
 async function toggleTask(id) { const t = tasks.find(t => t.id === id); if (t) { await sbFetch('culecas_tareas', 'PATCH', { done: !t.done }, id); loadAll(); } }
 function filterTasks(f, btn) { document.querySelectorAll('#sec-tareas .filter-pill').forEach(p => p.classList.remove('active')); btn.classList.add('active'); renderTasks(f); }
+
+function editEvent(id) {
+  const e = events.find(e => e.id === id);
+  if (!e) return;
+  editingId = id;
+  modalType = e.tipo;
+  document.getElementById('modal-title').textContent = e.tipo === 'turno' ? '💼 Editar turno' : '🌸 Editar evento';
+  document.getElementById('modal-body').innerHTML = modalForms[e.tipo];
+  document.getElementById('m-name').value = e.name || '';
+  document.getElementById('m-persona').value = e.persona || 'Noelia';
+  document.getElementById('m-date').value = e.date || '';
+  document.getElementById('m-time').value = e.time || '';
+  if (e.tipo === 'turno' && document.getElementById('m-time-fin')) {
+    document.getElementById('m-time-fin').value = e.time_fin || '';
+  }
+  openModal();
+}
 
 // ===== AVISOS =====
 function renderReminders() {
@@ -815,7 +849,7 @@ async function deleteItem(arr, id, table, ...renders) {
 // ===== MODAL =====
 const modalForms = {
   evento: `<label>Nombre</label><input type="text" id="m-name" placeholder="Ej: Cine, comida..."><label>Quien</label><select id="m-persona">${memberOptions}</select><label>Fecha</label><input type="date" id="m-date"><label>Hora</label><input type="time" id="m-time">`,
-  turno:  `<label>Descripcion</label><input type="text" id="m-name" placeholder="Ej: Turno mañana..."><label>Quien</label><select id="m-persona">${memberOptions}</select><label>Fecha</label><input type="date" id="m-date"><label>Hora inicio</label><input type="time" id="m-time">`,
+  turno:  `<label>Descripcion</label><input type="text" id="m-name" placeholder="Ej: Turno mañana..."><label>Quien</label><select id="m-persona">${memberOptions}</select><label>Fecha</label><input type="date" id="m-date"><label>Hora inicio</label><input type="time" id="m-time"><label>Hora fin</label><input type="time" id="m-time-fin">`,
   tarea:  `<label>Tarea</label><input type="text" id="m-name" placeholder="Descripcion"><label>Quien</label><select id="m-persona">${memberOptions}</select><label>Categoria</label><select id="m-tag"><option value="planes">Planes</option><option value="personal">Personal</option><option value="casa">Casa</option><option value="urgente">Urgente</option><option value="trabajo">Trabajo</option></select><label>Fecha</label><input type="date" id="m-date">`,
   recordatorio: `<label>Titulo</label><input type="text" id="m-name" placeholder="Ej: Cumpleaños..."><label>Quien</label><select id="m-persona">${memberOptions}</select><label>Hora / Frecuencia</label><input type="text" id="m-time" placeholder="Ej: 09:00 / Cada lunes"><label>Cuando</label><select id="m-when"><option value="hoy">Hoy</option><option value="manana">Mañana</option><option value="pronto">Próximamente</option></select>`,
   nota:   `<label>Titulo</label><input type="text" id="m-name" placeholder="Ej: Ideas viaje"><label>Quien</label><select id="m-persona">${memberOptions}</select><label>Contenido</label><textarea id="m-content" placeholder="Escribe aqui..."></textarea>`,
@@ -844,10 +878,24 @@ async function saveModal() {
   const pdfVal = document.getElementById('m-pdf')?.value.trim() || '';
   const pdfFile = pdfVal ? pdfVal : null;
 
+  // Handle editing existing event
+  if (editingId && (modalType === 'evento' || modalType === 'turno')) {
+    const date = document.getElementById('m-date')?.value || '';
+    const time = document.getElementById('m-time')?.value || '12:00';
+    const timeFin = document.getElementById('m-time-fin')?.value || '';
+    await sbFetch('culecas_eventos', 'PATCH', { name, date, time, time_fin: timeFin, persona }, editingId);
+    editingId = null;
+    closeModal();
+    loadAll();
+    return;
+  }
+  editingId = null;
+
   if (modalType === 'evento' || modalType === 'turno') {
     const date = document.getElementById('m-date')?.value || '';
     const time = document.getElementById('m-time')?.value || '12:00';
-    await sbFetch('culecas_eventos', 'POST', { name, date, time, persona, tipo: modalType === 'turno' ? 'turno' : 'evento' });
+    const timeFin = modalType === 'turno' ? (document.getElementById('m-time-fin')?.value || '') : '';
+    await sbFetch('culecas_eventos', 'POST', { name, date, time, time_fin: timeFin, persona, tipo: modalType === 'turno' ? 'turno' : 'evento' });
   } else if (modalType === 'tarea') {
     const tag = document.getElementById('m-tag')?.value || 'planes';
     const d = document.getElementById('m-date')?.value;
@@ -919,10 +967,37 @@ async function loadAll() {
   renderCalendar(); renderTasks(); renderReminders(); renderNotes(); renderViajes(); renderDocs();
 }
 
+// ===== NOTIFICACIONES =====
+function requestNotifications() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+
+function checkNotifications() {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  const now = new Date();
+  const today = now.toLocaleDateString('es-ES', { day:'numeric', month:'short' });
+  reminders.forEach(r => {
+    if (r.when === 'hoy') {
+      const key = 'notif_' + r.id;
+      if (!localStorage.getItem(key)) {
+        new Notification('🔔 CULECAS — ' + r.title, {
+          body: r.time,
+          icon: '/icono.png'
+        });
+        localStorage.setItem(key, '1');
+      }
+    }
+  });
+}
+
 // ===== INIT =====
 renderLegend();
 loadAll();
 setInterval(loadAll, 30000);
+setInterval(checkNotifications, 60000);
+requestNotifications();
 </script>
 </body>
 </html>
