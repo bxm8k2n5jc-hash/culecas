@@ -641,8 +641,11 @@ const TRABAJO_COLORS = {
   Noelia: { color: '#2E7D32', bg: '#E8F5E9', text: '#1B5E20' },
   Sandra: { color: '#C62828', bg: '#FFEBEE', text: '#B71C1C' }
 };
-const memberOptions = Object.keys(MEMBERS).map(n => `<option value="${n}">${n}</option>`).join('');
-function getMemberStyle(p) { return MEMBERS[p] || { color: '#9C27B0', bg: '#F3E5F5', text: '#7B1FA2' }; }
+const memberOptions = Object.keys(MEMBERS).map(n => `<option value="${n}">${n}</option>`).join('') + '<option value="Las dos">💗 Las dos</option>';
+function getMemberStyle(p) { 
+  if (p === 'Las dos') return { color: '#E91E8C', bg: '#FCE4EC', text: '#880E4F' };
+  return MEMBERS[p] || { color: '#9C27B0', bg: '#F3E5F5', text: '#7B1FA2' }; 
+}
 function getTrabajoStyle(p) { return TRABAJO_COLORS[p] || TRABAJO_COLORS['Noelia']; }
 
 const TACK_COLORS = ['red','blue','green','purple','orange','pink','brown','yellow'];
@@ -681,6 +684,7 @@ const viajes = [];
 function renderLegend() {
   document.getElementById('members-legend').innerHTML = [
     ...Object.entries(MEMBERS).map(([n,s]) => `<div class="member-pill" style="border:2px solid ${s.color}"><div class="color-dot" style="background:${s.color}"></div><span style="color:${s.text}">${n}</span></div>`),
+    `<div class="member-pill" style="border:2px solid #E91E8C"><span style="font-size:12px">💗</span><span style="color:#880E4F">Las dos</span></div>`,
     ...Object.entries(TRABAJO_COLORS).map(([n,s]) => `<div class="member-pill" style="border:2px solid ${s.color}"><div class="color-tri" style="border-bottom:9px solid ${s.color}"></div><span style="color:${s.text}">Trabajo ${n}</span></div>`)
   ].join('');
 }
@@ -709,6 +713,7 @@ function renderCalendar() {
     const isToday = today.getFullYear()===currentYear && today.getMonth()===currentMonth && today.getDate()===d;
     const dots = events.filter(e => e.date === dateStr).map(e => {
       if (e.tipo === 'turno') { const s = getTrabajoStyle(e.persona); return `<div class="day-event-tri" style="border-bottom:8px solid ${s.color}"></div>`; }
+      if (e.persona === 'Las dos') return `<div style="font-size:9px;line-height:1">💗</div>`;
       const s = getMemberStyle(e.persona); return `<div class="day-event-dot" style="background:${s.color}"></div>`;
     }).join('');
     grid.innerHTML += `<div class="cal-day${isToday?' today':''}${selectedDay===dateStr?' selected':''}" onclick="selectDay('${dateStr}')"><div class="day-circle">${d}</div><div class="day-events">${dots}</div></div>`;
